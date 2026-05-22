@@ -10,7 +10,14 @@ const errorMiddleware = require("./middleware/errorMiddleware");
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: env.allowedOrigin,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.get("/health", (req, res) => {
