@@ -201,3 +201,37 @@ describe("POST /api/auth/demo-login", () => {
     expect(lastStatus).toBe(429);
   });
 });
+
+// ─── POST /api/auth/demo-reactivate ───────────────────────────────────────
+
+describe("POST /api/auth/demo-reactivate", () => {
+  beforeEach(() => jest.resetAllMocks());
+
+  const demoUser = () => ({
+    id: "demo-uuid",
+    email: "demo@sentinelx.io",
+    token_version: 4,
+    blocked_until: null,
+    created_at: new Date().toISOString(),
+  });
+
+  it("200 — restores access without resetting history", async () => {
+    demoService.reactivateDemoSession.mockResolvedValue(demoUser());
+
+    const res = await request(app).post("/api/auth/demo-reactivate").send({});
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe("Demo session reactivated");
+    expect(typeof res.body.token).toBe("string");
+    expect(demoService.resetDemoSession).not.toHaveBeenCalled();
+  });
+
+  it("500 — surfaces a clean error if reactivation fails", async () => {
+    demoService.reactivateDemoSession.mockRejectedValue(new Error("db unavailable"));
+
+    const res = await request(app).post("/api/auth/demo-reactivate").send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.message).toBe("Unable to reactivate demo session");
+  });
+});

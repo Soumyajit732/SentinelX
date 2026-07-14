@@ -99,4 +99,30 @@ async function resetDemoSession() {
   return result.rows[0];
 }
 
-module.exports = { DEMO_EMAIL, resetDemoSession };
+/**
+ * Restores access to the existing demo account without touching its
+ * activity history — unlike resetDemoSession, this preserves whatever
+ * anomaly/explanation the terminated session just generated so a visitor
+ * can actually review what happened instead of it being wiped on re-entry.
+ * If the demo account doesn't exist yet, falls back to a full reset.
+ */
+async function reactivateDemoSession() {
+  const user = await findDemoUser();
+  if (!user) {
+    return resetDemoSession();
+  }
+
+  const result = await db.query(
+    `
+      UPDATE users
+      SET token_version = token_version + 1, blocked_until = NULL
+      WHERE id = $1
+      RETURNING id, email, token_version, blocked_until, created_at;
+    `,
+    [user.id]
+  );
+
+  return result.rows[0];
+}
+
+module.exports = { DEMO_EMAIL, resetDemoSession, reactivateDemoSession };

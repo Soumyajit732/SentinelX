@@ -20,7 +20,7 @@ function LoadingState() {
   );
 }
 
-function ErrorState({ error, isDemo, onRetry, onRestartDemo }) {
+function ErrorState({ error, isDemo, onRetry, onReactivateDemo, onRestartDemo }) {
   const isSessionIssue =
     error.status === 401 &&
     (error.code === "SESSION_INVALIDATED" || error.code === "TEMP_BLOCKED");
@@ -32,15 +32,24 @@ function ErrorState({ error, isDemo, onRetry, onRestartDemo }) {
           <p className="text-amber-400 text-sm mb-1">Demo session ended</p>
           <p className="text-slate-600 text-xs mb-5">
             A HIGH-risk event triggered auto-mitigation, which invalidated this
-            session — that's the zero-trust engine working as designed. Start
-            a fresh demo session to keep exploring.
+            session — that's the zero-trust engine working as designed. Reactivate
+            to regain access and see the anomaly it just logged, including the AI
+            explanation.
           </p>
-          <button
-            onClick={onRestartDemo}
-            className="text-xs font-semibold px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-lg transition-colors"
-          >
-            Restart Demo
-          </button>
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={onReactivateDemo}
+              className="text-xs font-semibold px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-lg transition-colors"
+            >
+              Reactivate & Review
+            </button>
+            <button
+              onClick={onRestartDemo}
+              className="text-xs font-semibold px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors border border-slate-700"
+            >
+              Full Reset
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -75,6 +84,16 @@ export default function DashboardPage() {
     refetch();
   }
 
+  async function reactivateDemo() {
+    const res = await api.post("/auth/demo-reactivate");
+    login(res.data.token, res.data.user, { demo: true });
+    refetch();
+    // The AI explanation for the anomaly that just fired is generated
+    // fire-and-forget on the backend, so it may not be written yet —
+    // catch it with a follow-up refresh a couple seconds later.
+    setTimeout(refetch, 3000);
+  }
+
   if (loading) return <LoadingState />;
   if (error) {
     return (
@@ -82,6 +101,7 @@ export default function DashboardPage() {
         error={error}
         isDemo={isDemo}
         onRetry={refetch}
+        onReactivateDemo={reactivateDemo}
         onRestartDemo={restartDemo}
       />
     );

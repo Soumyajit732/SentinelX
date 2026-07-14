@@ -79,16 +79,19 @@ export default function DemoControls({ onActivity }) {
     onActivity?.();
   }
 
-  async function restartDemo() {
+  async function reactivateDemo() {
     setLoading(true);
     setStatus(null);
     try {
-      const res = await api.post("/auth/demo-login");
+      // Reactivate (not demo-login) — restores access without wiping the
+      // activity history the burst just generated, so the anomaly and its
+      // AI explanation are still there to review.
+      const res = await api.post("/auth/demo-reactivate");
       login(res.data.token, res.data.user, { demo: true });
       setTerminated(false);
       onActivity?.();
     } catch {
-      setStatus({ ok: false, message: "Unable to restart demo session" });
+      setStatus({ ok: false, message: "Unable to reactivate demo session" });
     } finally {
       setLoading(false);
     }
@@ -127,11 +130,11 @@ export default function DemoControls({ onActivity }) {
         </button>
         {terminated && (
           <button
-            onClick={restartDemo}
+            onClick={reactivateDemo}
             disabled={loading}
             className="text-xs font-semibold px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-slate-950 transition-colors"
           >
-            Restart Demo
+            Reactivate & Review
           </button>
         )}
       </div>

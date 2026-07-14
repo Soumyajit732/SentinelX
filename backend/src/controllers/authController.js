@@ -82,22 +82,24 @@ async function login(req, res) {
   });
 }
 
+function demoUserResponse(user, message) {
+  return {
+    message,
+    token: signAccessToken(user),
+    user: {
+      id: user.id,
+      email: user.email,
+      tokenVersion: user.token_version,
+      blockedUntil: user.blocked_until,
+      createdAt: user.created_at,
+    },
+  };
+}
+
 async function demoLogin(req, res) {
   try {
     const user = await demoService.resetDemoSession();
-    const token = signAccessToken(user);
-
-    return res.status(200).json({
-      message: "Demo session started",
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        tokenVersion: user.token_version,
-        blockedUntil: user.blocked_until,
-        createdAt: user.created_at,
-      },
-    });
+    return res.status(200).json(demoUserResponse(user, "Demo session started"));
   } catch (error) {
     console.error("Failed to start demo session:", error.message);
 
@@ -107,8 +109,22 @@ async function demoLogin(req, res) {
   }
 }
 
+async function demoReactivate(req, res) {
+  try {
+    const user = await demoService.reactivateDemoSession();
+    return res.status(200).json(demoUserResponse(user, "Demo session reactivated"));
+  } catch (error) {
+    console.error("Failed to reactivate demo session:", error.message);
+
+    return res.status(500).json({
+      message: "Unable to reactivate demo session",
+    });
+  }
+}
+
 module.exports = {
   register,
   login,
   demoLogin,
+  demoReactivate,
 };
