@@ -1,6 +1,8 @@
 const db = require("../db/pool");
 const baselineService = require("./baselineService");
 
+// Any two signals firing together must reach the HIGH threshold (70) — a
+// single anomalous-hour hit shouldn't be the only path to auto-mitigation.
 const RISK_SIGNALS = {
   OUTSIDE_ACTIVE_HOURS: {
     name: "OUTSIDE_ACTIVE_HOURS",
@@ -8,11 +10,11 @@ const RISK_SIGNALS = {
   },
   RARE_ENDPOINT: {
     name: "RARE_ENDPOINT",
-    score: 30,
+    score: 35,
   },
   REQUEST_SPIKE: {
     name: "REQUEST_SPIKE",
-    score: 30,
+    score: 35,
   },
 };
 
@@ -125,9 +127,9 @@ async function calculateRisk({ userId, endpoint, timestamp = new Date() }) {
     );
   }
 
-  const riskScore = triggeredSignals.reduce(
-    (total, signal) => total + signal.score,
-    0
+  const riskScore = Math.min(
+    100,
+    triggeredSignals.reduce((total, signal) => total + signal.score, 0)
   );
 
   return {

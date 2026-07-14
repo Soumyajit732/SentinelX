@@ -1,4 +1,5 @@
 const userService = require("../services/userService");
+const demoService = require("../services/demoService");
 const { hashPassword, comparePassword } = require("../utils/password");
 const { signAccessToken } = require("../utils/jwt");
 
@@ -81,7 +82,33 @@ async function login(req, res) {
   });
 }
 
+async function demoLogin(req, res) {
+  try {
+    const user = await demoService.resetDemoSession();
+    const token = signAccessToken(user);
+
+    return res.status(200).json({
+      message: "Demo session started",
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        tokenVersion: user.token_version,
+        blockedUntil: user.blocked_until,
+        createdAt: user.created_at,
+      },
+    });
+  } catch (error) {
+    console.error("Failed to start demo session:", error.message);
+
+    return res.status(500).json({
+      message: "Unable to start demo session",
+    });
+  }
+}
+
 module.exports = {
   register,
   login,
+  demoLogin,
 };

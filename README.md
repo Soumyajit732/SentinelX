@@ -125,8 +125,10 @@ The risk service uses deterministic rules:
 | Signal | Score |
 | --- | --- |
 | Outside active hours | +40 |
-| Rare endpoint | +30 |
-| Request spike | +30 |
+| Rare endpoint | +35 |
+| Request spike | +35 |
+
+Any two signals together reach the HIGH threshold (70) — auto-mitigation isn't gated on the hour-based signal alone.
 
 Risk levels:
 

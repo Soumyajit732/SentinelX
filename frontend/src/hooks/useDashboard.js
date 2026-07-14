@@ -30,7 +30,11 @@ export default function useDashboard() {
       setRecoveryEvents(recoveryRes.data);
       setError(null);
     } catch (err) {
-      setError(err.message);
+      setError({
+        message: err.message,
+        code: err.response?.data?.code,
+        status: err.response?.status,
+      });
     } finally {
       setLoading(false);
     }

@@ -8,6 +8,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -24,6 +25,20 @@ export default function LoginPage() {
       setError(err.response?.data?.message ?? "Authentication failed");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDemoLogin() {
+    setError("");
+    setDemoLoading(true);
+    try {
+      const res = await api.post("/auth/demo-login");
+      login(res.data.token, res.data.user, { demo: true });
+      navigate("/");
+    } catch (err) {
+      setError(err.response?.data?.message ?? "Unable to start demo session");
+    } finally {
+      setDemoLoading(false);
     }
   }
 
@@ -103,6 +118,25 @@ export default function LoginPage() {
               {loading ? "Authenticating…" : "Access Dashboard"}
             </button>
           </form>
+
+          <div className="flex items-center gap-3 my-5">
+            <div className="h-px bg-slate-800 flex-1" />
+            <span className="text-[10px] text-slate-600 uppercase tracking-wider">or</span>
+            <div className="h-px bg-slate-800 flex-1" />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleDemoLogin}
+            disabled={demoLoading}
+            className="w-full bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 font-semibold text-sm rounded-lg py-2.5 transition-colors border border-slate-700"
+          >
+            {demoLoading ? "Starting demo…" : "Try Demo (no account needed)"}
+          </button>
+          <p className="text-[10px] text-slate-600 mt-2 text-center">
+            Instantly logs you into a live sandbox account with a pre-seeded
+            behavioral baseline.
+          </p>
         </div>
 
         <p className="text-center text-[10px] text-slate-800 mt-5">
